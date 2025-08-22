@@ -9,7 +9,10 @@ export default function ExportButton({ session }: { session: Session }) {
     // Exclude generative state from export
     const exportableSession = {
       ...session,
-      walls: session.walls.map(({isGenerating, ...rest}) => rest)
+      rooms: session.rooms.map(room => ({
+        ...room,
+        walls: room.walls.map(({isGenerating, ...rest}) => rest)
+      }))
     }
     const dataStr = JSON.stringify(exportableSession, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);

@@ -4,24 +4,40 @@ import { z } from 'zod';
 import { createSession as apiCreateSession, getSession as apiGetSession, updateSession as apiUpdateSession } from '@/lib/data';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import type { Session, Wall } from './types';
+import type { Session, Wall, Room } from './types';
 import { generateWallDesign } from '@/ai/flows/generate-wall-design';
+import { randomBytes } from 'crypto';
+
+const wallSchema = z.object({
+  name: z.string().min(1, "Wall name is required."),
+  theme: z.string().min(1, "Wall theme is required."),
+});
+
+const roomSchema = z.object({
+  name: z.string().min(1, "Room name is required."),
+  theme: z.string().min(1, "Room theme is required."),
+  width: z.coerce.number().min(1, "Width must be at least 1 meter."),
+  height: z.coerce.number().min(1, "Height must be at least 1 meter."),
+  depth: z.coerce.number().min(1, "Depth must be at least 1 meter."),
+  walls: z.array(wallSchema).min(1, "At least one wall is required per room."),
+});
 
 const sessionSchema = z.object({
-  name: z.string().min(3, "Session name must be at least 3 characters long."),
-  overallTheme: z.string().min(3, "Overall theme must be at least 3 characters long."),
-  width: z.coerce.number().min(1, "Width must be at least 1."),
-  height: z.coerce.number().min(1, "Height must be at least 1."),
-  depth: z.coerce.number().min(1, "Depth must be at least 1."),
-  wallNorth: z.string().min(1, "Theme for North wall is required."),
-  wallEast: z.string().min(1, "Theme for East wall is required."),
-  wallSouth: z.string().min(1, "Theme for South wall is required."),
-  wallWest: z.string().min(1, "Theme for West wall is required."),
+  name: z.string().min(3, "Project name must be at least 3 characters long."),
+  overallTheme: z.string().min(3, "Global theme must be at least 3 characters long."),
+  rooms: z.array(roomSchema).min(1, "At least one room is required."),
 });
 
 
 export async function createSessionAction(prevState: any, formData: FormData) {
-  const validatedFields = sessionSchema.safeParse(Object.fromEntries(formData.entries()));
+  // This is complex to parse from FormData, so we'll read the raw form body
+  const jsonString = formData.get('json') as string;
+
+  if (!jsonString) { // Fallback for non-JS
+     return { message: 'This form requires JavaScript.' };
+  }
+
+  const validatedFields = sessionSchema.safeParse(JSON.parse(jsonString));
 
   if (!validatedFields.success) {
     return {
@@ -30,19 +46,25 @@ export async function createSessionAction(prevState: any, formData: FormData) {
     };
   }
 
-  const { name, overallTheme, width, height, depth, wallNorth, wallEast, wallSouth, wallWest } = validatedFields.data;
+  const { name, overallTheme, rooms } = validatedFields.data;
 
   try {
     const newSession = await apiCreateSession({
       name,
       overallTheme,
-      roomDimensions: { width, height, depth },
-      walls: [
-        { name: 'North', theme: wallNorth },
-        { name: 'East', theme: wallEast },
-        { name: 'South', theme: wallSouth },
-        { name: 'West', theme: wallWest },
-      ]
+      rooms: rooms.map(room => ({
+        id: randomBytes(4).toString('hex'),
+        ...room,
+        dimensions: {
+            width: room.width,
+            height: room.height,
+            depth: room.depth
+        },
+        walls: room.walls.map(wall => ({
+          name: wall.name,
+          theme: wall.theme
+        })),
+      })),
     });
     
     if (!newSession) {
@@ -58,20 +80,25 @@ export async function createSessionAction(prevState: any, formData: FormData) {
   }
 }
 
-export async function generateWallImageAction(sessionId: string, wallName: Wall['name']) {
+export async function generateWallImageAction(sessionId: string, roomId: string, wallName: Wall['name']) {
     const session = await apiGetSession(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
 
-    const wall = session.walls.find(w => w.name === wallName);
+    const room = session.rooms.find(r => r.id === roomId);
+    if (!room) {
+        throw new Error('Room not found');
+    }
+
+    const wall = room.walls.find(w => w.name === wallName);
     if (!wall) {
         throw new Error('Wall not found');
     }
 
     // Set generating state
     wall.isGenerating = true;
-    await apiUpdateSession(sessionId, { walls: session.walls });
+    await apiUpdateSession(sessionId, { rooms: session.rooms });
     revalidatePath(`/dashboard/sessions/${sessionId}`);
 
     try {
@@ -79,23 +106,28 @@ export async function generateWallImageAction(sessionId: string, wallName: Wall[
         
         const finalSession = await apiGetSession(sessionId);
         if(!finalSession) throw new Error('Session disappeared');
-        const finalWall = finalSession.walls.find(w => w.name === wallName);
+        const finalRoom = finalSession.rooms.find(r => r.id === roomId);
+        if(!finalRoom) throw new Error('Room disappeared');
+
+        const finalWall = finalRoom.walls.find(w => w.name === wallName);
 
         if (finalWall) {
             finalWall.imageUrl = result.imageDataUri;
             finalWall.isGenerating = false;
         }
 
-        await apiUpdateSession(sessionId, { walls: finalSession.walls });
+        await apiUpdateSession(sessionId, { walls: finalSession.rooms });
     } catch(e) {
         // Reset generating state on error
         const errorSession = await apiGetSession(sessionId);
         if(!errorSession) return;
-        const finalWall = errorSession.walls.find(w => w.name === wallName);
+        const finalRoom = errorSession.rooms.find(r => r.id === roomId);
+        if(!finalRoom) return;
+        const finalWall = finalRoom.walls.find(w => w.name === wallName);
         if (finalWall) {
             finalWall.isGenerating = false;
         }
-        await apiUpdateSession(sessionId, { walls: errorSession.walls });
+        await apiUpdateSession(sessionId, { rooms: errorSession.walls });
         console.error("AI Generation failed:", e);
     }
 

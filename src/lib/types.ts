@@ -1,19 +1,26 @@
 export interface Wall {
-  name: 'North' | 'South' | 'East' | 'West';
-  theme: string;
+  name: string; // e.g., 'North Wall', 'Accent Wall'
+  theme: string; // The prompt for this specific wall
   imageUrl?: string;
   isGenerating?: boolean;
 }
 
-export interface Session {
+export interface Room {
   id: string;
   name: string;
-  roomDimensions: {
+  theme: string;
+  dimensions: {
     width: number;
     height: number;
     depth: number;
   };
-  overallTheme: string;
   walls: Wall[];
+}
+
+export interface Session {
+  id: string;
+  name: string; // Project Name
+  overallTheme: string; // Global Project Theme
+  rooms: Room[];
   createdAt: string; // Using string for easier serialization
 }

@@ -25,12 +25,12 @@ function GenerateButton({ isGenerating }: { isGenerating?: boolean }) {
     )
 }
 
-export function WallDisplay({ wall, sessionId }: { wall: Wall; sessionId: string }) {
+export function WallDisplay({ wall, sessionId, roomId }: { wall: Wall; sessionId: string, roomId: string }) {
   
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle>{wall.name} Wall</CardTitle>
+        <CardTitle>{wall.name}</CardTitle>
         <CardDescription className="h-10 min-h-10">{wall.theme}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow flex items-center justify-center bg-muted/50 aspect-video rounded-md m-6 mt-0">
@@ -51,7 +51,7 @@ export function WallDisplay({ wall, sessionId }: { wall: Wall; sessionId: string
         )}
       </CardContent>
       <CardFooter>
-        <form action={generateWallImageAction.bind(null, sessionId, wall.name)} className="w-full">
+        <form action={generateWallImageAction.bind(null, sessionId, roomId, wall.name)} className="w-full">
             <GenerateButton isGenerating={wall.isGenerating} />
         </form>
       </CardFooter>
