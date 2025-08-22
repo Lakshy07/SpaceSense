@@ -1,6 +1,13 @@
 export interface Wall {
   name: string; // e.g., 'North Wall', 'Accent Wall'
   theme: string; // The prompt for this specific wall
+  features: {
+    hasWindow: boolean;
+    windowDetails: string;
+    hasDoor: boolean;
+    doorDetails: string;
+    otherFeatures: string;
+  };
   imageUrl?: string;
   isGenerating?: boolean;
 }
@@ -9,6 +16,7 @@ export interface Room {
   id: string;
   name: string;
   theme: string;
+  ceilingDesign: string;
   dimensions: {
     width: number;
     height: number;

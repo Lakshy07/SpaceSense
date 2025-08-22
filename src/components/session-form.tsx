@@ -6,21 +6,31 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createSessionAction } from '@/lib/actions';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from './ui/textarea';
 import { SubmitButton } from './submit-button';
 import { Button } from './ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Checkbox } from './ui/checkbox';
+import { Switch } from './ui/switch';
 
 const wallSchema = z.object({
   name: z.string().min(1, "Wall name is required."),
   theme: z.string().min(1, "Wall theme is required."),
+  features: z.object({
+    hasWindow: z.boolean().default(false),
+    windowDetails: z.string().optional(),
+    hasDoor: z.boolean().default(false),
+    doorDetails: z.string().optional(),
+    otherFeatures: z.string().optional(),
+  }),
 });
 
 const roomSchema = z.object({
   name: z.string().min(1, "Room name is required."),
   theme: z.string().min(1, "Room theme is required."),
+  ceilingDesign: z.string().min(1, "Ceiling design is required."),
   width: z.coerce.number().min(1, "Width must be at least 1 meter."),
   height: z.coerce.number().min(1, "Height must be at least 1 meter."),
   depth: z.coerce.number().min(1, "Depth must be at least 1 meter."),
@@ -51,15 +61,16 @@ export function SessionForm() {
       rooms: [
         { 
           name: 'Living Room', 
-          theme: 'Modern', 
+          theme: 'Modern',
+          ceilingDesign: 'White ceiling with recessed lighting',
           width: 4, 
           height: 2.5, 
           depth: 5,
           walls: [
-            { name: 'North Wall', theme: 'A light gray wall with a large abstract painting' },
-            { name: 'East Wall', theme: 'Exposed brick accent wall' },
-            { name: 'South Wall', theme: 'Wall with a large window and sheer curtains' },
-            { name: 'West Wall', theme: 'Bookshelf wall with integrated lighting' },
+            { name: 'North Wall', theme: 'A light gray wall with a large abstract painting', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' } },
+            { name: 'East Wall', theme: 'Exposed brick accent wall', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' } },
+            { name: 'South Wall', theme: 'Wall with a large window and sheer curtains', features: { hasWindow: true, windowDetails: 'Centered, 6ft wide', hasDoor: false, doorDetails: '', otherFeatures: '' } },
+            { name: 'West Wall', theme: 'Bookshelf wall with integrated lighting', features: { hasWindow: false, windowDetails: '', hasDoor: true, doorDetails: 'Oak door, on the right', otherFeatures: 'Integrated bookshelf' } },
           ]
         }
       ],
@@ -114,7 +125,7 @@ export function SessionForm() {
             type="button"
             variant="outline"
             className="mt-4"
-            onClick={() => appendRoom({ name: `Room ${roomFields.length + 1}`, theme: '', width: 4, height: 2.5, depth: 5, walls: [{ name: 'Main Wall', theme: '' }] })}
+            onClick={() => appendRoom({ name: `Room ${roomFields.length + 1}`, theme: '', ceilingDesign: '', width: 4, height: 2.5, depth: 5, walls: [{ name: 'Main Wall', theme: '', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' } }] })}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Room
@@ -150,7 +161,9 @@ function RoomCard({ form, roomIndex, removeRoom }: { form: any, roomIndex: numbe
             <FormField control={form.control} name={`rooms.${roomIndex}.theme`} render={({ field }) => (
                 <FormItem><FormLabel>Room Theme</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
             )} />
-
+            <FormField control={form.control} name={`rooms.${roomIndex}.ceilingDesign`} render={({ field }) => (
+                <FormItem><FormLabel>Ceiling Design</FormLabel><FormControl><Input placeholder="e.g., Cove lighting, matte finish" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
             <div>
                 <h4 className="font-medium mb-2">Dimensions (in meters)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -170,22 +183,81 @@ function RoomCard({ form, roomIndex, removeRoom }: { form: any, roomIndex: numbe
                 <h4 className="font-medium mb-2">Walls</h4>
                 <div className="space-y-4">
                 {wallFields.map((wall, wallIndex) => (
-                    <div key={wall.id} className="flex items-end gap-2">
-                        <FormField control={form.control} name={`rooms.${roomIndex}.walls.${wallIndex}.name`} render={({ field }) => (
-                            <FormItem className="flex-grow"><FormLabel>Wall Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name={`rooms.${roomIndex}.walls.${wallIndex}.theme`} render={({ field }) => (
-                            <FormItem className="flex-grow-[2]"><FormLabel>Wall Theme/Prompt</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <Button variant="ghost" size="icon" onClick={() => removeWall(wallIndex)}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
+                    <WallCard key={wall.id} form={form} roomIndex={roomIndex} wallIndex={wallIndex} removeWall={removeWall} />
                 ))}
                 </div>
-                <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendWall({ name: `Wall ${wallFields.length + 1}`, theme: '' })}>
+                <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendWall({ name: `Wall ${wallFields.length + 1}`, theme: '', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' } })}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Wall
                 </Button>
             </div>
         </CardContent>
      </Card>
   )
+}
+
+function WallCard({ form, roomIndex, wallIndex, removeWall }: { form: any, roomIndex: number, wallIndex: number, removeWall: (index: number) => void }) {
+    const watchHasWindow = form.watch(`rooms.${roomIndex}.walls.${wallIndex}.features.hasWindow`);
+    const watchHasDoor = form.watch(`rooms.${roomIndex}.walls.${wallIndex}.features.hasDoor`);
+
+    return (
+        <Card key={wallIndex} className="p-4 space-y-4 relative bg-background">
+            <div className="flex items-start gap-2">
+                <div className='flex-grow space-y-2'>
+                    <FormField control={form.control} name={`rooms.${roomIndex}.walls.${wallIndex}.name`} render={({ field }) => (
+                        <FormItem><FormLabel>Wall Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name={`rooms.${roomIndex}.walls.${wallIndex}.theme`} render={({ field }) => (
+                        <FormItem><FormLabel>Wall Theme/Prompt</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => removeWall(wallIndex)} className='absolute top-2 right-2'><Trash2 className="h-4 w-4" /></Button>
+            </div>
+            
+            <div className='space-y-4'>
+                <FormField
+                    control={form.control}
+                    name={`rooms.${roomIndex}.walls.${wallIndex}.features.hasWindow`}
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel>Has Window?</FormLabel>
+                            </div>
+                            <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+                {watchHasWindow && (
+                    <FormField control={form.control} name={`rooms.${roomIndex}.walls.${wallIndex}.features.windowDetails`} render={({ field }) => (
+                        <FormItem><FormLabel>Window Details</FormLabel><FormControl><Input placeholder="e.g. centered, 6ft wide, 4ft high" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                )}
+
+                <FormField
+                    control={form.control}
+                    name={`rooms.${roomIndex}.walls.${wallIndex}.features.hasDoor`}
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel>Has Door?</FormLabel>
+                            </div>
+                            <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+                {watchHasDoor && (
+                     <FormField control={form.control} name={`rooms.${roomIndex}.walls.${wallIndex}.features.doorDetails`} render={({ field }) => (
+                        <FormItem><FormLabel>Door Details</FormLabel><FormControl><Input placeholder="e.g. left side, 3ft wide" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                )}
+
+                <FormField control={form.control} name={`rooms.${roomIndex}.walls.${wallIndex}.features.otherFeatures`} render={({ field }) => (
+                    <FormItem><FormLabel>Other Features</FormLabel><FormControl><Input placeholder="e.g. TV mount, two shelves" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+            </div>
+        </Card>
+    );
 }

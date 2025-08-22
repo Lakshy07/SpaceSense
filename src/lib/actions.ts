@@ -11,11 +11,19 @@ import { randomBytes } from 'crypto';
 const wallSchema = z.object({
   name: z.string().min(1, "Wall name is required."),
   theme: z.string().min(1, "Wall theme is required."),
+  features: z.object({
+    hasWindow: z.boolean().default(false),
+    windowDetails: z.string().optional(),
+    hasDoor: z.boolean().default(false),
+    doorDetails: z.string().optional(),
+    otherFeatures: z.string().optional(),
+  }),
 });
 
 const roomSchema = z.object({
   name: z.string().min(1, "Room name is required."),
   theme: z.string().min(1, "Room theme is required."),
+  ceilingDesign: z.string().min(1, "Ceiling design is required."),
   width: z.coerce.number().min(1, "Width must be at least 1 meter."),
   height: z.coerce.number().min(1, "Height must be at least 1 meter."),
   depth: z.coerce.number().min(1, "Depth must be at least 1 meter."),
@@ -36,7 +44,7 @@ export async function createSessionAction(prevState: any, formData: FormData) {
   if (!jsonString) { // Fallback for non-JS
      return { message: 'This form requires JavaScript.' };
   }
-
+  
   const validatedFields = sessionSchema.safeParse(JSON.parse(jsonString));
 
   if (!validatedFields.success) {
@@ -62,7 +70,8 @@ export async function createSessionAction(prevState: any, formData: FormData) {
         },
         walls: room.walls.map(wall => ({
           name: wall.name,
-          theme: wall.theme
+          theme: wall.theme,
+          features: wall.features,
         })),
       })),
     });
@@ -102,7 +111,21 @@ export async function generateWallImageAction(sessionId: string, roomId: string,
     revalidatePath(`/dashboard/sessions/${sessionId}`);
 
     try {
-        const result = await generateWallDesign({ prompt: wall.theme });
+        let prompt = wall.theme;
+        prompt += ` The room has a ${room.theme} theme. The ceiling is ${room.ceilingDesign}.`;
+
+        if (wall.features.hasWindow) {
+            prompt += ` The wall has a window. Details: ${wall.features.windowDetails}.`;
+        }
+        if (wall.features.hasDoor) {
+            prompt += ` The wall has a door. Details: ${wall.features.doorDetails}.`;
+        }
+        if (wall.features.otherFeatures) {
+            prompt += ` Other features on the wall: ${wall.features.otherFeatures}.`;
+        }
+
+
+        const result = await generateWallDesign({ prompt });
         
         const finalSession = await apiGetSession(sessionId);
         if(!finalSession) throw new Error('Session disappeared');

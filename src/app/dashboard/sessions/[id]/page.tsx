@@ -2,7 +2,7 @@ import { getSession } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { WallDisplay } from "@/components/wall-display";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ruler, Sparkles, Home, Box } from "lucide-react";
+import { Ruler, Sparkles, Home, Box, Grid3x3 } from "lucide-react";
 import ExportButton from "@/components/export-button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -61,10 +61,15 @@ export default async function SessionDetailPage({ params }: { params: { id: stri
                     <AccordionContent>
                         <Card className="border-none shadow-none">
                             <CardHeader>
-                               <div className="flex items-center gap-3 text-sm">
+                               <div className="flex items-center gap-3 text-sm mb-2">
                                     <Ruler className="h-4 w-4 text-muted-foreground" />
                                     <span className="font-medium">Dimensions:</span>
                                     <span>{room.dimensions.width}m x {room.dimensions.depth}m x {room.dimensions.height}m</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm">
+                                    <Grid3x3 className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-medium">Ceiling:</span>
+                                    <span>{room.ceilingDesign}</span>
                                 </div>
                             </CardHeader>
                             <CardContent>

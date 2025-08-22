@@ -15,12 +15,13 @@ if (process.env.NODE_ENV === 'development' && sessions.length === 0) {
             id: 'room1',
             name: 'Living Room',
             theme: 'A mix of scandinavian and industrial, with warm textiles and metal accents.',
+            ceilingDesign: 'White ceiling with exposed wooden beams',
             dimensions: { width: 4, height: 2.5, depth: 5 },
             walls: [
-              { name: 'North', theme: 'Light gray wall with a large abstract painting', isGenerating: false },
-              { name: 'East', theme: 'Exposed brick accent wall', isGenerating: false },
-              { name: 'South', theme: 'Wall with a large window and sheer curtains', isGenerating: false },
-              { name: 'West', theme: 'Bookshelf wall with integrated lighting', isGenerating: false }
+              { name: 'North', theme: 'Light gray wall with a large abstract painting', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' }, isGenerating: false },
+              { name: 'East', theme: 'Exposed brick accent wall', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' }, isGenerating: false },
+              { name: 'South', theme: 'Wall with a large window and sheer curtains', features: { hasWindow: true, windowDetails: 'Centered, 6ft wide', hasDoor: false, doorDetails: '', otherFeatures: '' }, isGenerating: false },
+              { name: 'West', theme: 'Bookshelf wall with integrated lighting', features: { hasWindow: false, windowDetails: '', hasDoor: true, doorDetails: 'Sliding barn door', otherFeatures: 'Integrated bookshelf' }, isGenerating: false }
             ],
         }
     ],
@@ -35,22 +36,24 @@ if (process.env.NODE_ENV === 'development' && sessions.length === 0) {
             id: 'room1',
             name: 'Kitchen',
             theme: 'Sleek and functional with dark tones',
+            ceilingDesign: 'Track lighting on a dark gray ceiling',
             dimensions: { width: 3, height: 2.7, depth: 4 },
             walls: [
-                { name: 'North', theme: 'Dark green tiled wall' },
-                { name: 'East', theme: 'Stainless steel backsplash' },
-                { name: 'South', theme: 'Matte black cabinets' },
-                { name: 'West', theme: 'Chalkboard paint wall for notes' }
+                { name: 'North', theme: 'Dark green tiled wall', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: 'Open shelving' } },
+                { name: 'East', theme: 'Stainless steel backsplash', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: 'Countertops and cabinets' } },
+                { name: 'South', theme: 'Matte black cabinets', features: { hasWindow: false, windowDetails: '', hasDoor: true, doorDetails: 'Pantry door', otherFeatures: '' } },
+                { name: 'West', theme: 'Chalkboard paint wall for notes', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' } }
             ]
         },
         {
             id: 'room2',
             name: 'Dining Area',
             theme: 'Bright and airy extension of the kitchen',
+            ceilingDesign: 'Vaulted ceiling with a modern chandelier',
             dimensions: { width: 3, height: 2.7, depth: 3 },
             walls: [
-                { name: 'North', theme: 'Feature wall with geometric wallpaper' },
-                { name: 'East', theme: 'Large glass sliding doors to the garden' },
+                { name: 'North', theme: 'Feature wall with geometric wallpaper', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' } },
+                { name: 'East', theme: 'Large glass sliding doors to the garden', features: { hasWindow: true, windowDetails: 'Floor to ceiling sliding doors', hasDoor: true, doorDetails: 'Sliding doors act as door', otherFeatures: '' } },
             ]
         }
     ],
@@ -76,7 +79,7 @@ export async function createSession(data: Omit<Session, 'id' | 'createdAt' | 'ro
     id: randomBytes(8).toString('hex'),
     ...data,
     createdAt: new Date().toISOString(),
-    rooms: data.rooms.map(r => ({ ...r, id: randomBytes(4).toString('hex'), walls: r.walls.map(w => ({...w, imageUrl: undefined, isGenerating: false})) })),
+    rooms: data.rooms.map(r => ({ ...r, id: randomBytes(4).toString('hex'), walls: r.walls.map(w => ({...w, features: w.features || {}, imageUrl: undefined, isGenerating: false})) })),
   };
   sessions.unshift(newSession); // Add to the beginning of the array
   return newSession;
