@@ -1,3 +1,5 @@
+'use client';
+
 import type { Wall } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -49,9 +51,7 @@ export function WallDisplay({ wall, sessionId }: { wall: Wall; sessionId: string
         )}
       </CardContent>
       <CardFooter>
-        <form action={async () => {
-            await generateWallImageAction(sessionId, wall.name);
-        }} className="w-full">
+        <form action={generateWallImageAction.bind(null, sessionId, wall.name)} className="w-full">
             <GenerateButton isGenerating={wall.isGenerating} />
         </form>
       </CardFooter>
