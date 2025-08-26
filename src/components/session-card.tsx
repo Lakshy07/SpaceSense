@@ -22,7 +22,7 @@ export function SessionCard({ session }: { session: Session }) {
         <CardHeader>
           <div className="flex justify-between items-start">
             <CardTitle className="font-headline">{session.name}</CardTitle>
-             <Badge variant="secondary" className={cn("capitalize text-xs", status.color)}>
+             <Badge variant="secondary" className={cn("capitalize text-xs", "text-white", status.color)}>
                 <status.icon className="mr-1 h-3 w-3" />
                 {status.label}
             </Badge>

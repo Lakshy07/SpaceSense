@@ -3,10 +3,17 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { WallDisplay } from "@/components/wall-display";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ruler, Sparkles, Home, Box, Grid3x3, Map } from "lucide-react";
+import { Ruler, Sparkles, Home, Box, Grid3x3, Map, CheckCircle2, XCircle, Clock } from "lucide-react";
 import ExportButton from "@/components/export-button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+const statusInfo = {
+    pending: { icon: Clock, label: "Pending", color: "bg-yellow-500" },
+    approved: { icon: CheckCircle2, label: "Approved", color: "bg-green-500" },
+    rejected: { icon: XCircle, label: "Rejected", color: "bg-red-500" },
+}
 
 export default async function SessionDetailPage({ params: { id } }: { params: { id: string } }) {
   const session = await getSession(id);
@@ -14,16 +21,24 @@ export default async function SessionDetailPage({ params: { id } }: { params: { 
   if (!session) {
     notFound();
   }
+  
+  const status = statusInfo[session.status] || statusInfo.pending;
 
   return (
     <div className="container py-12">
       <div className="mb-8 space-y-2">
-        <div className="flex items-center gap-4">
-          <Home className="h-10 w-10 text-muted-foreground" />
-          <div>
-            <h1 className="text-4xl font-bold font-headline">{session.name}</h1>
-            <p className="text-lg text-muted-foreground">{session.overallTheme}</p>
-          </div>
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                <Home className="h-10 w-10 text-muted-foreground" />
+                <div>
+                    <h1 className="text-4xl font-bold font-headline">{session.name}</h1>
+                    <p className="text-lg text-muted-foreground">{session.overallTheme}</p>
+                </div>
+            </div>
+            <Badge variant="secondary" className={cn("capitalize text-base", "text-white", status.color)}>
+                <status.icon className="mr-2 h-4 w-4" />
+                {status.label}
+            </Badge>
         </div>
       </div>
 
@@ -56,6 +71,7 @@ export default async function SessionDetailPage({ params: { id } }: { params: { 
                                         className="w-full h-auto object-contain"
                                         data-ai-hint="floor plan"
                                      />
+
                                 </div>
                             </div>
                         </div>
