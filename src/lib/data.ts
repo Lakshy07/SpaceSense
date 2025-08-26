@@ -10,6 +10,7 @@ if (process.env.NODE_ENV === 'development' && sessions.length === 0) {
     id: '1',
     name: 'Cozy Living Room Project',
     overallTheme: 'Scandinavian minimalist',
+    houseMapUrl: 'https://picsum.photos/seed/floorplan1/200/200',
     rooms: [
         {
             id: 'room1',

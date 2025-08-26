@@ -1,8 +1,9 @@
 import { getSession } from "@/lib/data";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { WallDisplay } from "@/components/wall-display";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ruler, Sparkles, Home, Box, Grid3x3 } from "lucide-react";
+import { Ruler, Sparkles, Home, Box, Grid3x3, Map } from "lucide-react";
 import ExportButton from "@/components/export-button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,24 @@ export default async function SessionDetailPage({ params }: { params: { id: stri
                             <p className="text-sm text-muted-foreground">{session.overallTheme}</p>
                         </div>
                     </div>
+                     {session.houseMapUrl && (
+                        <div className="flex items-start gap-3">
+                            <Map className="h-5 w-5 text-muted-foreground mt-1" />
+                            <div>
+                                <span className="font-medium">Floor Plan</span>
+                                <div className="mt-2 rounded-md border overflow-hidden">
+                                     <Image 
+                                        src={session.houseMapUrl} 
+                                        alt="House floor plan" 
+                                        width={200}
+                                        height={200}
+                                        className="w-full h-auto object-contain"
+                                        data-ai-hint="floor plan"
+                                     />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

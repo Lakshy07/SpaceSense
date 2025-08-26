@@ -10,10 +10,10 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Textarea } from './ui/textarea';
 import { SubmitButton } from './submit-button';
 import { Button } from './ui/button';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Checkbox } from './ui/checkbox';
 import { Switch } from './ui/switch';
+import { useState } from 'react';
 
 const wallSchema = z.object({
   name: z.string().min(1, "Wall name is required."),
@@ -40,6 +40,7 @@ const roomSchema = z.object({
 const sessionSchema = z.object({
   name: z.string().min(3, "Project name must be at least 3 characters long."),
   overallTheme: z.string().min(3, "Global theme must be at least 3 characters long."),
+  houseMap: z.any().optional(),
   rooms: z.array(roomSchema).min(1, "At least one room is required."),
 });
 
@@ -52,6 +53,7 @@ const initialState = {
 
 export function SessionForm() {
   const [state, formAction] = useFormState(createSessionAction, initialState);
+  const [houseMapPreview, setHouseMapPreview] = useState<string | null>(null);
 
   const form = useForm<SessionFormData>({
     resolver: zodResolver(sessionSchema),
@@ -82,9 +84,24 @@ export function SessionForm() {
     name: "rooms"
   });
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setHouseMapPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      form.setValue('houseMap', file);
+    } else {
+      setHouseMapPreview(null);
+      form.setValue('houseMap', null);
+    }
+  };
+
   return (
     <Form {...form}>
-      <form action={formAction} className="space-y-8">
+      <form action={formAction} className="space-y-8" encType='multipart/form-data'>
         <div className="space-y-4">
           <FormField
             control={form.control}
@@ -112,6 +129,37 @@ export function SessionForm() {
               </FormItem>
             )}
           />
+           <FormField
+            control={form.control}
+            name="houseMap"
+            render={() => (
+                <FormItem>
+                    <FormLabel>House Map / Floor Plan</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-4">
+                        <label htmlFor="house-map-upload" className="cursor-pointer flex-grow">
+                          <div className="flex items-center gap-2 border rounded-md p-2 justify-center hover:bg-muted transition-colors">
+                              <Upload className="h-4 w-4" />
+                              <span>{houseMapPreview ? 'Change file' : 'Upload file'}</span>
+                          </div>
+                          <Input id="house-map-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/*,.pdf" />
+                        </label>
+                        {houseMapPreview && (
+                          <div className="w-24 h-24 border rounded-md overflow-hidden shrink-0">
+                            {form.getValues('houseMap')?.type.startsWith('image/') ? (
+                                <img src={houseMapPreview} alt="House map preview" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground p-2">PDF/File</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormDescription>Upload an image (JPG, PNG) or PDF of the floor plan.</FormDescription>
+                    <FormMessage />
+                </FormItem>
+            )}
+            />
         </div>
 
         <div>

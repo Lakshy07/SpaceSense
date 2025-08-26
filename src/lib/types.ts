@@ -26,9 +26,10 @@ export interface Room {
 }
 
 export interface Session {
-  id: string;
+  id:string;
   name: string; // Project Name
   overallTheme: string; // Global Project Theme
+  houseMapUrl?: string; // URL for the uploaded house map/floor plan
   rooms: Room[];
   createdAt: string; // Using string for easier serialization
 }

@@ -34,12 +34,15 @@ const sessionSchema = z.object({
   name: z.string().min(3, "Project name must be at least 3 characters long."),
   overallTheme: z.string().min(3, "Global theme must be at least 3 characters long."),
   rooms: z.array(roomSchema).min(1, "At least one room is required."),
+  houseMap: z.any().optional(),
 });
 
 
 export async function createSessionAction(prevState: any, formData: FormData) {
   // This is complex to parse from FormData, so we'll read the raw form body
   const jsonString = formData.get('json') as string;
+  const houseMapFile = formData.get('houseMap') as File | null;
+
 
   if (!jsonString) { // Fallback for non-JS
      return { message: 'This form requires JavaScript.' };
@@ -56,10 +59,16 @@ export async function createSessionAction(prevState: any, formData: FormData) {
 
   const { name, overallTheme, rooms } = validatedFields.data;
 
+  // TODO: Handle file upload to a storage service (e.g., Firebase Storage)
+  // For now, we'll just use a placeholder URL.
+  const houseMapUrl = houseMapFile ? `/uploads/placeholder_${houseMapFile.name}` : undefined;
+
+
   try {
     const newSession = await apiCreateSession({
       name,
       overallTheme,
+      houseMapUrl,
       rooms: rooms.map(room => ({
         id: randomBytes(4).toString('hex'),
         ...room,
@@ -139,7 +148,7 @@ export async function generateWallImageAction(sessionId: string, roomId: string,
             finalWall.isGenerating = false;
         }
 
-        await apiUpdateSession(sessionId, { walls: finalSession.rooms });
+        await apiUpdateSession(sessionId, { rooms: finalSession.rooms });
     } catch(e) {
         // Reset generating state on error
         const errorSession = await apiGetSession(sessionId);
@@ -150,7 +159,7 @@ export async function generateWallImageAction(sessionId: string, roomId: string,
         if (finalWall) {
             finalWall.isGenerating = false;
         }
-        await apiUpdateSession(sessionId, { rooms: errorSession.walls });
+        await apiUpdateSession(sessionId, { rooms: errorSession.rooms });
         console.error("AI Generation failed:", e);
     }
 
