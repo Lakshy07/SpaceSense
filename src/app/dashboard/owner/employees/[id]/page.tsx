@@ -25,7 +25,7 @@ export default async function EmployeeOverviewPage({ params }: { params: { id: s
 
 
     return (
-        <div className="container py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
             <Card className="mb-8 bg-muted/20 border-0">
                 <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
                     <Avatar className="w-24 h-24 text-4xl border-4 border-background">
@@ -46,7 +46,7 @@ export default async function EmployeeOverviewPage({ params }: { params: { id: s
                 <section>
                     <h2 className="text-2xl font-semibold font-headline mb-4 flex items-center"><Clock className="mr-3 h-6 w-6 text-primary"/>Recent Projects</h2>
                      {recentProjects.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {recentProjects.map(session => (
                             <SessionCard key={session.id} session={session} />
                         ))}
@@ -68,7 +68,7 @@ export default async function EmployeeOverviewPage({ params }: { params: { id: s
                 <section>
                     <h2 className="text-2xl font-semibold font-headline mb-4 flex items-center"><CheckCircle2 className="mr-3 h-6 w-6 text-green-500"/>Selected Projects</h2>
                     {selectedProjects.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {selectedProjects.map(session => (
                             <SessionCard key={session.id} session={session} />
                         ))}
@@ -85,7 +85,7 @@ export default async function EmployeeOverviewPage({ params }: { params: { id: s
                         <h2 className="text-2xl font-semibold font-headline flex items-center"><Users className="mr-3 h-6 w-6 text-primary"/>Coworkers</h2>
                     </div>
                     {coworkers.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                             {coworkers.map(coworker => (
                                 <EmployeeCard key={coworker.id} employee={coworker} />
                             ))}
