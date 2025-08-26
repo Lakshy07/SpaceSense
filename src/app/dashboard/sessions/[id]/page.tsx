@@ -8,8 +8,8 @@ import ExportButton from "@/components/export-button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 
-export default async function SessionDetailPage({ params }: { params: { id: string } }) {
-  const session = await getSession(params.id);
+export default async function SessionDetailPage({ params: { id } }: { params: { id: string } }) {
+  const session = await getSession(id);
 
   if (!session) {
     notFound();
