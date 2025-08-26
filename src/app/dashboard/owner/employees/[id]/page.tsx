@@ -82,7 +82,7 @@ export default async function EmployeeOverviewPage({ params }: { params: { id: s
 
                 <section>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-2xl font-semibold font-headline flex items-center"><Users className="mr-3 h-6 w-6 text-primary"/>Coworkers</h2>
+                        <h2 className="text-2xl font-semibold font-headline flex items-center"><Users className="mr-3 h-6 w-6 text-primary"/>Other Employees</h2>
                     </div>
                     {coworkers.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
