@@ -3,10 +3,10 @@ export interface Wall {
   theme: string; // The prompt for this specific wall
   features: {
     hasWindow: boolean;
-    windowDetails: string;
+    windowDetails?: string;
     hasDoor: boolean;
-    doorDetails: string;
-    otherFeatures: string;
+    doorDetails?: string;
+    otherFeatures?: string;
   };
   imageUrl?: string;
   isGenerating?: boolean;
@@ -28,8 +28,18 @@ export interface Room {
 export interface Session {
   id:string;
   name: string; // Project Name
+  designerId?: string;
   overallTheme: string; // Global Project Theme
   houseMapUrl?: string; // URL for the uploaded house map/floor plan
+  status: 'pending' | 'approved' | 'rejected';
   rooms: Room[];
   createdAt: string; // Using string for easier serialization
+}
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: 'owner' | 'employee';
+    ownerId?: string; // only for employees
 }

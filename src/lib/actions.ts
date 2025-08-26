@@ -56,12 +56,14 @@ export async function createSessionAction(prevState: any, formData: FormData) {
       message: 'Validation failed. Please check your inputs.',
     };
   }
-
+  
+  // In a real app, you'd get the designerId from the logged-in user's session
+  const designerId = 'employee-1'; // or 'owner-1'
   const { name, overallTheme, rooms } = validatedFields.data;
 
   // TODO: Handle file upload to a storage service (e.g., Firebase Storage)
   // For now, we'll just use a placeholder URL.
-  const houseMapUrl = houseMapFile ? `/uploads/placeholder_${houseMapFile.name}` : undefined;
+  const houseMapUrl = houseMapFile && houseMapFile.size > 0 ? `https://picsum.photos/seed/${randomBytes(4).toString('hex')}/400/400` : undefined;
 
 
   try {
@@ -69,6 +71,7 @@ export async function createSessionAction(prevState: any, formData: FormData) {
       name,
       overallTheme,
       houseMapUrl,
+      designerId,
       rooms: rooms.map(room => ({
         id: randomBytes(4).toString('hex'),
         ...room,
@@ -89,7 +92,8 @@ export async function createSessionAction(prevState: any, formData: FormData) {
         throw new Error("Failed to create session.");
     }
     
-    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/owner');
+    revalidatePath('/dashboard/employee');
     redirect(`/dashboard/sessions/${newSession.id}`);
   } catch (error) {
     return {
@@ -151,7 +155,7 @@ export async function generateWallImageAction(sessionId: string, roomId: string,
         await apiUpdateSession(sessionId, { rooms: finalSession.rooms });
     } catch(e) {
         // Reset generating state on error
-        const errorSession = await apiGetSession(sessionId);
+        const errorSession = await apiGetgtiSession(sessionId);
         if(!errorSession) return;
         const finalRoom = errorSession.rooms.find(r => r.id === roomId);
         if(!finalRoom) return;
@@ -164,4 +168,8 @@ export async function generateWallImageAction(sessionId: string, roomId: string,
     }
 
     revalidatePath(`/dashboard/sessions/${sessionId}`);
+}
+
+async function apiGetgtiSession(sessionId: string): Promise<Session | undefined> {
+    return apiGetSession(sessionId);
 }

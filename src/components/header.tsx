@@ -1,3 +1,9 @@
+// This component is no longer used directly. 
+// It has been replaced by role-specific headers in:
+// - src/app/dashboard/owner/layout.tsx
+// - src/app/dashboard/employee/layout.tsx
+// It is kept to avoid breaking imports in files that may not have been updated yet.
+
 import Link from 'next/link';
 import { Logo } from './logo';
 import { Button } from './ui/button';
@@ -11,16 +17,7 @@ export function Header() {
           <Link href="/dashboard" className="mr-6 flex items-center space-x-2">
             <Logo />
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link
-              href="/dashboard"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Dashboard
-            </Link>
-          </nav>
         </div>
-
         <div className="flex flex-1 items-center justify-end space-x-2">
           <Button asChild>
             <Link href="/dashboard/new">

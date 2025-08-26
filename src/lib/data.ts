@@ -1,16 +1,27 @@
-import type { Session, Wall, Room } from './types';
+import type { Session, Wall, Room, User } from './types';
 import { randomBytes } from 'crypto';
 
 // In-memory store for demo purposes
 let sessions: Session[] = [];
+let users: User[] = [];
+
 
 // Seed with some initial data for demonstration
 if (process.env.NODE_ENV === 'development' && sessions.length === 0) {
+  const owner: User = { id: 'owner-1', name: 'Lakshya', role: 'owner', email: 'owner@example.com' };
+  const employees: User[] = [
+    { id: 'employee-1', name: 'Alex Smith', role: 'employee', ownerId: 'owner-1', email: 'alex@example.com' },
+    { id: 'employee-2', name: 'Maria Garcia', role: 'employee', ownerId: 'owner-1', email: 'maria@example.com' },
+  ];
+  users = [owner, ...employees];
+
   sessions.push({
     id: '1',
     name: 'Cozy Living Room Project',
+    designerId: 'employee-1',
     overallTheme: 'Scandinavian minimalist',
     houseMapUrl: 'https://picsum.photos/seed/floorplan1/200/200',
+    status: 'approved',
     rooms: [
         {
             id: 'room1',
@@ -31,7 +42,9 @@ if (process.env.NODE_ENV === 'development' && sessions.length === 0) {
   sessions.push({
     id: '2',
     name: 'Modern Kitchen & Dining',
+    designerId: 'employee-2',
     overallTheme: 'Industrial chic',
+    status: 'pending',
     rooms: [
         {
             id: 'room1',
@@ -46,27 +59,39 @@ if (process.env.NODE_ENV === 'development' && sessions.length === 0) {
                 { name: 'West', theme: 'Chalkboard paint wall for notes', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' } }
             ]
         },
-        {
-            id: 'room2',
-            name: 'Dining Area',
-            theme: 'Bright and airy extension of the kitchen',
-            ceilingDesign: 'Vaulted ceiling with a modern chandelier',
-            dimensions: { width: 3, height: 2.7, depth: 3 },
-            walls: [
-                { name: 'North', theme: 'Feature wall with geometric wallpaper', features: { hasWindow: false, windowDetails: '', hasDoor: false, doorDetails: '', otherFeatures: '' } },
-                { name: 'East', theme: 'Large glass sliding doors to the garden', features: { hasWindow: true, windowDetails: 'Floor to ceiling sliding doors', hasDoor: true, doorDetails: 'Sliding doors act as door', otherFeatures: '' } },
-            ]
-        }
     ],
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+    sessions.push({
+    id: '3',
+    name: 'Client Rejection Example',
+    designerId: 'employee-1',
+    overallTheme: 'Art Deco',
+    status: 'rejected',
+    rooms: [],
+    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
   });
 }
 
 
-export async function getSessions(): Promise<Session[]> {
-  // Simulate network delay
+export async function getSessions(params?: { designerId?: string, status?: string }): Promise<Session[]> {
   await new Promise(res => setTimeout(res, 500));
-  return sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  let filteredSessions = sessions;
+  if (params?.designerId) {
+    filteredSessions = filteredSessions.filter(s => s.designerId === params.designerId);
+  }
+  if (params?.status) {
+    filteredSessions = filteredSessions.filter(s => s.status === params.status);
+  }
+  return filteredSessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function getAllSessionsForOwner(ownerId: string): Promise<Session[]> {
+    await new Promise(res => setTimeout(res, 500));
+    const employeeIds = users.filter(u => u.role === 'employee' && u.ownerId === ownerId).map(u => u.id);
+    const ownerSessions = sessions.filter(s => s.designerId === ownerId);
+    const employeeSessions = sessions.filter(s => s.designerId && employeeIds.includes(s.designerId));
+    return [...ownerSessions, ...employeeSessions].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getSession(id: string): Promise<Session | undefined> {
@@ -74,11 +99,12 @@ export async function getSession(id: string): Promise<Session | undefined> {
   return sessions.find(s => s.id === id);
 }
 
-export async function createSession(data: Omit<Session, 'id' | 'createdAt' | 'rooms'> & { rooms: Array<Omit<Room, 'walls'> & {walls: Array<Omit<Wall, 'imageUrl' | 'isGenerating'>>}> }): Promise<Session> {
+export async function createSession(data: Omit<Session, 'id' | 'createdAt' | 'rooms' | 'status'> & { rooms: Array<Omit<Room, 'walls'> & {walls: Array<Omit<Wall, 'imageUrl' | 'isGenerating'>>}> }): Promise<Session> {
   await new Promise(res => setTimeout(res, 300));
   const newSession: Session = {
     id: randomBytes(8).toString('hex'),
     ...data,
+    status: 'pending',
     createdAt: new Date().toISOString(),
     rooms: data.rooms.map(r => ({ ...r, id: randomBytes(4).toString('hex'), walls: r.walls.map(w => ({...w, features: w.features || {}, imageUrl: undefined, isGenerating: false})) })),
   };
@@ -109,4 +135,16 @@ export async function updateSession(id: string, data: Partial<Session>): Promise
 
   sessions[sessionIndex] = updatedSession;
   return sessions[sessionIndex];
+}
+
+export async function getUsers(params?: { role?: 'owner' | 'employee', ownerId?: string }): Promise<User[]> {
+  await new Promise(res => setTimeout(res, 200));
+  let filteredUsers = users;
+  if(params?.role){
+    filteredUsers = filteredUsers.filter(u => u.role === params.role)
+  }
+  if(params?.ownerId){
+    filteredUsers = filteredUsers.filter(u => u.ownerId === params.ownerId)
+  }
+  return filteredUsers;
 }
