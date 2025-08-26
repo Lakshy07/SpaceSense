@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { Home, LogOut, PlusCircle, Users } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Header() {
   return (
@@ -30,6 +31,7 @@ export function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
+          <ThemeToggle />
           <Button asChild>
             <Link href="/dashboard/new">
               <PlusCircle className="mr-2 h-4 w-4" />
