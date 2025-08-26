@@ -74,7 +74,7 @@ if (process.env.NODE_ENV === 'development' && sessions.length === 0) {
 }
 
 
-export async function getSessions(params?: { designerId?: string, status?: string }): Promise<Session[]> {
+export async function getSessions(params?: { designerId?: string, status?: 'pending' | 'approved' | 'rejected' }): Promise<Session[]> {
   await new Promise(res => setTimeout(res, 500));
   let filteredSessions = sessions;
   if (params?.designerId) {
@@ -137,9 +137,12 @@ export async function updateSession(id: string, data: Partial<Session>): Promise
   return sessions[sessionIndex];
 }
 
-export async function getUsers(params?: { role?: 'owner' | 'employee', ownerId?: string }): Promise<User[]> {
+export async function getUsers(params?: { role?: 'owner' | 'employee', ownerId?: string, id?: string }): Promise<User[]> {
   await new Promise(res => setTimeout(res, 200));
   let filteredUsers = users;
+  if(params?.id){
+    return filteredUsers.filter(u => u.id === params.id)
+  }
   if(params?.role){
     filteredUsers = filteredUsers.filter(u => u.role === params.role)
   }
@@ -147,4 +150,10 @@ export async function getUsers(params?: { role?: 'owner' | 'employee', ownerId?:
     filteredUsers = filteredUsers.filter(u => u.ownerId === params.ownerId)
   }
   return filteredUsers;
+}
+
+
+export async function getUser(id: string): Promise<User | undefined> {
+    await new Promise(res => setTimeout(res, 200));
+    return users.find(u => u.id === id);
 }

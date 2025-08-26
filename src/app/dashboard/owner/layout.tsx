@@ -41,7 +41,7 @@ export async function Header() {
               <DropdownMenuContent className="w-64">
                 {employees.map(employee => (
                   <DropdownMenuItem key={employee.id} asChild>
-                    <Link href={`/dashboard/owner/employees`}>
+                    <Link href={`/dashboard/owner/employees/${employee.id}`}>
                        <div className="flex items-center gap-4">
                           <Avatar>
                               <AvatarImage src={`https://i.pravatar.cc/150?u=${employee.id}`} />

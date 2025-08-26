@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export function EmployeeCard({ employee }: { employee: User }) {
   return (
-     <Link href={`/dashboard/owner/employees`} className="block hover:shadow-lg transition-shadow duration-300 rounded-lg">
+     <Link href={`/dashboard/owner/employees/${employee.id}`} className="block hover:shadow-lg transition-shadow duration-300 rounded-lg">
       <Card className="h-full">
         <CardContent className="p-4 flex flex-col items-center text-center gap-4">
            <Avatar className="w-20 h-20 border-4 border-primary/20">
